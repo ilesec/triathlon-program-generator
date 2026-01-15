@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Program - Triathlon Program Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .program-header {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .week-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            background: white;
+        }
+        
+        .week-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .week-header h2 {
+            color: #667eea;
+        }
+        
+        .week-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .workout {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        
+        .workout.swim {
+            border-left-color: #00bcd4;
+        }
+        
+        .workout.bike {
+            border-left-color: #ff9800;
+        }
+        
+        .workout.run {
+            border-left-color: #4caf50;
+        }
+        
+        .workout-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .workout-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .sport-badge {
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .sport-badge.swim { background: #00bcd4; }
+        .sport-badge.bike { background: #ff9800; }
+        .sport-badge.run { background: #4caf50; }
+        
+        .workout-section {
+            margin: 15px 0;
+        }
+        
+        .workout-section h4 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .interval {
+            background: white;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .interval-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .intensity {
+            display: inline-block;
+            padding: 3px 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Your Training Program</h1>
+            </div>
+            <a href="/" class="back-btn">← Back to Home</a>
+        </header>
+        
+        <div class="content">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading your training program...</p>
+            </div>
+            
+            <div id="programContent" style="display: none;">
+                <div class="program-header" id="programHeader"></div>
+                <div id="weeksContainer"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const programId = window.location.pathname.split('/').pop();
+        
+        async function loadProgram() {
+            try {
+                const response = await fetch(`/api/workouts/${programId}`);
+                if (!response.ok) throw new Error('Failed to load program');
+                
+                const data = await response.json();
+                const program = data.program;
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('programContent').style.display = 'block';
+                
+                // Render header
+                document.getElementById('programHeader').innerHTML = `
+                    <h2>${program.goal.replace('_', ' ').toUpperCase()} Training Program</h2>
+                    <div style="margin-top: 15px; display: flex; gap: 30px; flex-wrap: wrap;">
+                        <div><strong>Fitness Level:</strong> ${program.fitness_level}</div>
+                        <div><strong>Duration:</strong> ${program.duration_weeks} weeks</div>
+                        <div><strong>Created:</strong> ${new Date(data.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <p style="margin-top: 20px; color: #666;">${program.notes}</p>
+                `;
+                
+                // Render weeks
+                const weeksHTML = program.weeks.map(week => `
+                    <div class="week-card">
+                        <div class="week-header">
+                            <h2>Week ${week.week_number}: ${week.focus}</h2>
+                            <div class="week-stats">
+                                <span><strong>Volume:</strong> ${week.weekly_volume_hours.toFixed(1)} hours</span>
+                                <span><strong>Distance:</strong> ${week.weekly_distance_km.toFixed(1)} km</span>
+                            </div>
+                        </div>
+                        
+                        ${week.workouts.map(workout => `
+                            <div class="workout ${workout.sport}">
+                                <div class="workout-header">
+                                    <span class="workout-title">${workout.title}</span>
+                                    <span class="sport-badge ${workout.sport}">${workout.sport.toUpperCase()}</span>
+                                </div>
+                                
+                                <div style="display: flex; gap: 20px; margin-bottom: 15px; color: #666;">
+                                    <span><strong>Duration:</strong> ${workout.total_duration_minutes} min</span>
+                                    ${workout.total_distance_km ? `<span><strong>Distance:</strong> ${workout.total_distance_km} km</span>` : ''}
+                                </div>
+                                
+                                <div class="workout-section">
+                                    <h4>Warmup</h4>
+                                    <p>${workout.warmup}</p>
+                                </div>
+                                
+                                <div class="workout-section">
+                                    <h4>Main Set</h4>
+                                    ${workout.main_set.map(interval => `
+                                        <div class="interval">
+                                            <div class="interval-header">
+                                                <span>
+                                                    ${interval.duration_minutes ? `${interval.duration_minutes} min` : ''}
+                                                    ${interval.distance_km ? `${interval.distance_km} km` : ''}
+                                                </span>
+                                                <span class="intensity">${interval.intensity}</span>
+                                            </div>
+                                            <p style="color: #666;">${interval.description}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                
+                                <div class="workout-section">
+                                    <h4>Cooldown</h4>
+                                    <p>${workout.cooldown}</p>
+                                </div>
+                                
+                                ${workout.notes ? `
+                                    <div class="workout-section">
+                                        <h4>Notes</h4>
+                                        <p style="color: #666; font-style: italic;">${workout.notes}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `).join('');
+                
+                document.getElementById('weeksContainer').innerHTML = weeksHTML;
+                
+            } catch (error) {
+                console.error('Error loading program:', error);
+                document.getElementById('loading').innerHTML = 
+                    '<p style="color: #c33;">Error loading program. Please try again.</p>';
+            }
+        }
+        
+        loadProgram();
+    </script>
+</body>
+</html>

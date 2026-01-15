@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triathlon Program Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        select, input[type="number"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .programs-section {
+            margin-top: 40px;
+        }
+        
+        .program-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .program-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .program-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .program-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .success {
+            background: #efe;
+            border: 2px solid #cfc;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏊‍♂️ 🚴‍♂️ 🏃‍♂️</h1>
+            <h1>Triathlon Program Generator</h1>
+            <p>AI-Powered Training Programs for Triathlon Athletes</p>
+        </header>
+        
+        <div class="content">
+            <div class="form-section">
+                <h2 style="margin-bottom: 25px; color: #333;">Generate Your Training Program</h2>
+                
+                <form id="workoutForm">
+                    <div class="form-group">
+                        <label for="goal">Race Goal</label>
+                        <select id="goal" name="goal" required>
+                            <option value="sprint">Sprint (750m swim, 20km bike, 5km run)</option>
+                            <option value="olympic">Olympic (1.5km swim, 40km bike, 10km run)</option>
+                            <option value="half_ironman">Half Ironman (1.9km swim, 90km bike, 21.1km run)</option>
+                            <option value="full_ironman">Full Ironman (3.8km swim, 180km bike, 42.2km run)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fitness_level">Current Fitness Level</label>
+                        <select id="fitness_level" name="fitness_level" required>
+                            <option value="beginner">Beginner - New to triathlon</option>
+                            <option value="intermediate">Intermediate - Have completed races</option>
+                            <option value="advanced">Advanced - Regular competitor</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="available_hours_per_week">Available Training Hours per Week</label>
+                        <input type="number" id="available_hours_per_week" name="available_hours_per_week" 
+                               min="3" max="30" value="8" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="duration_weeks">Program Duration (weeks)</label>
+                        <input type="number" id="duration_weeks" name="duration_weeks" 
+                               min="4" max="52" value="12" required>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="generateBtn">Generate Training Program</button>
+                </form>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Generating your personalized training program...</p>
+                    <p style="color: #666; margin-top: 10px;">This may take 10-20 seconds</p>
+                </div>
+                
+                <div class="error" id="error"></div>
+                <div class="success" id="success"></div>
+            </div>
+            
+            <div class="programs-section">
+                <h2 style="margin-bottom: 25px; color: #333;">Your Training Programs</h2>
+                <div id="programsList">
+                    <p style="color: #666;">Loading programs...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Load saved programs on page load
+        async function loadPrograms() {
+            try {
+                const response = await fetch('/api/workouts');
+                const programs = await response.json();
+                
+                const listEl = document.getElementById('programsList');
+                
+                if (programs.length === 0) {
+                    listEl.innerHTML = '<p style="color: #666;">No programs yet. Generate your first one above!</p>';
+                    return;
+                }
+                
+                listEl.innerHTML = programs.map(p => `
+                    <div class="program-card" onclick="viewProgram(${p.id})">
+                        <h3>${p.goal.replace('_', ' ').toUpperCase()}</h3>
+                        <div class="program-meta">
+                            <span><strong>Level:</strong> ${p.fitness_level}</span>
+                            <span><strong>Duration:</strong> ${p.duration_weeks} weeks</span>
+                            <span><strong>Hours/week:</strong> ${p.available_hours_per_week}</span>
+                            <span><strong>Created:</strong> ${new Date(p.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading programs:', error);
+                document.getElementById('programsList').innerHTML = 
+                    '<p style="color: #c33;">Error loading programs</p>';
+            }
+        }
+        
+        function viewProgram(id) {
+            window.location.href = `/programs/${id}`;
+        }
+        
+        // Handle form submission
+        document.getElementById('workoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                goal: formData.get('goal'),
+                fitness_level: formData.get('fitness_level'),
+                available_hours_per_week: parseInt(formData.get('available_hours_per_week')),
+                duration_weeks: parseInt(formData.get('duration_weeks'))
+            };
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/workouts/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate program');
+                }
+                
+                const result = await response.json();
+                
+                // Show success
+                document.getElementById('success').textContent = 
+                    'Training program generated successfully! Redirecting...';
+                document.getElementById('success').style.display = 'block';
+                
+                // Redirect to program view
+                setTimeout(() => {
+                    window.location.href = `/programs/${result.id}`;
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('error').textContent = 
+                    'Error generating program. Please check your API key and try again.';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('generateBtn').disabled = false;
+            }
+        });
+        
+        // Load programs on page load
+        loadPrograms();
+    </script>
+</body>
+</html>
