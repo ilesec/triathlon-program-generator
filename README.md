@@ -51,6 +51,20 @@ python app/main.py
 - `GET /api/workouts/{id}` - Get a specific workout
 - `DELETE /api/workouts/{id}` - Delete a workout
 
+## Deployment
+
+### Deploy to Azure App Services
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions on deploying to Azure.
+
+**Quick deploy:**
+```bash
+az login
+az webapp up --name triathlon-program-generator --runtime "PYTHON:3.11" --sku B1
+```
+
+Then set your `ANTHROPIC_API_KEY` in Azure Portal → Configuration → Application Settings.
+
 ## License
 
 MIT
