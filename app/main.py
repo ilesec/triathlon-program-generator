@@ -204,6 +204,8 @@ async def view_program(request: Request, program_id: int):
 
 
 if __name__ == "__main__":
-    print("Starting Triathlon Program Generator...")
-    print("Navigate to http://localhost:8000 to access the web interface")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    port = int(os.getenv("PORT", 8000))
+    print(f"Starting Triathlon Program Generator on port {port}...")
+    print(f"Navigate to http://localhost:{port} to access the web interface")
+    uvicorn.run(app, host="0.0.0.0", port=port)

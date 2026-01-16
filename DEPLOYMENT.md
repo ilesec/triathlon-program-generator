@@ -17,20 +17,28 @@ az login
 # Create a resource group
 az group create --name triathlon-rg --location swedencentral
 
-# Create an App Service plan (Free tier for testing)
+# Create an App Service plan (B1 tier)
 az appservice plan create --name triathlon-plan --resource-group triathlon-rg --sku B1 --is-linux
 
 # Create the web app
 az webapp create --resource-group triathlon-rg --plan triathlon-plan --name triathlon-program-generator --runtime "PYTHON:3.11"
 
-# Configure startup command
+# Configure startup command (IMPORTANT: This must be set before deploying)
 az webapp config set --resource-group triathlon-rg --name triathlon-program-generator --startup-file "startup.sh"
 
-# Set environment variables
-az webapp config appsettings set --resource-group triathlon-rg --name triathlon-program-generator --settings ANTHROPIC_API_KEY="your-api-key-here" DATABASE_URL="sqlite:///./workouts.db"
+# Set environment variables (Replace with your actual API key)
+az webapp config appsettings set --resource-group triathlon-rg --name triathlon-program-generator --settings \
+  ANTHROPIC_API_KEY="your-api-key-here" \
+  DATABASE_URL="sqlite:///./workouts.db" \
+  SCM_DO_BUILD_DURING_DEPLOYMENT="true"
 
-# Deploy your code
-az webapp up --resource-group triathlon-rg --name triathlon-program-generator --runtime "PYTHON:3.11"
+# Enable logging
+az webapp log config --resource-group triathlon-rg --name triathlon-program-generator \
+  --application-logging filesystem --detailed-error-messages true --web-server-logging filesystem
+
+# Deploy your code using ZIP deploy (most reliable)
+cd "c:\Users\ilkkahyvonen\Personal projects\triathlon-program-generator"
+az webapp deployment source config-zip --resource-group triathlon-rg --name triathlon-program-generator --src deployment.zip
 ```
 
 Your app will be available at: `https://triathlon-program-generator.azurewebsites.net`
