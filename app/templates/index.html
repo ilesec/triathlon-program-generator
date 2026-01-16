@@ -254,10 +254,31 @@
     </div>
     
     <script>
+        async function getErrorMessage(response) {
+            // Try to parse FastAPI-style JSON errors: { detail: "..." }
+            try {
+                const data = await response.clone().json();
+                if (data && typeof data.detail === 'string') return data.detail;
+                if (data && typeof data.message === 'string') return data.message;
+                return JSON.stringify(data);
+            } catch {
+                try {
+                    const text = await response.clone().text();
+                    return text || `HTTP ${response.status}`;
+                } catch {
+                    return `HTTP ${response.status}`;
+                }
+            }
+        }
+
         // Load saved programs on page load
         async function loadPrograms() {
             try {
                 const response = await fetch('/api/workouts');
+                if (!response.ok) {
+                    const msg = await getErrorMessage(response);
+                    throw new Error(msg);
+                }
                 const programs = await response.json();
                 
                 const listEl = document.getElementById('programsList');
@@ -281,7 +302,7 @@
             } catch (error) {
                 console.error('Error loading programs:', error);
                 document.getElementById('programsList').innerHTML = 
-                    '<p style="color: #c33;">Error loading programs</p>';
+                    `<p style="color: #c33;">Error loading programs: ${String(error.message || error)}</p>`;
             }
         }
         
@@ -317,7 +338,8 @@
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Failed to generate program');
+                    const msg = await getErrorMessage(response);
+                    throw new Error(msg || 'Failed to generate program');
                 }
                 
                 const result = await response.json();
@@ -335,7 +357,7 @@
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('error').textContent = 
-                    'Error generating program. Please check your API key and try again.';
+                    `Error generating program: ${String(error.message || error)}`;
                 document.getElementById('error').style.display = 'block';
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('generateBtn').disabled = false;

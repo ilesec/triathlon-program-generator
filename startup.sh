@@ -10,4 +10,6 @@ python -c "from app.database import init_db; init_db()"
 PORT="${PORT:-8000}"
 
 # Start the application with gunicorn
-gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120 --access-logfile - --error-logfile -
+# - Use a longer timeout for LLM calls
+# - Use a single worker to reduce memory pressure on smaller App Service plans
+gunicorn app.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 600 --access-logfile - --error-logfile -

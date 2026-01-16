@@ -9,7 +9,7 @@ import uvicorn
 
 from app.database import init_db, get_db
 from app.models import WorkoutRequest, TrainingProgram, RaceDistance, Sport
-from app.agent import TriathlonWorkoutAgent
+from app.config import settings
 from app.repository import ProgramRepository, WorkoutHistoryRepository
 
 # Initialize FastAPI app
@@ -25,8 +25,17 @@ init_db()
 # Setup templates
 templates = Jinja2Templates(directory="app/templates")
 
-# Initialize agent
-agent = TriathlonWorkoutAgent()
+# Initialize agent based on provider
+def get_agent():
+    """Get the appropriate agent based on configuration."""
+    if settings.llm_provider.lower() == "azure_ai":
+        from app.agent_azure_ai import TriathlonWorkoutAgentAzureAI
+        return TriathlonWorkoutAgentAzureAI()
+    else:  # Default to anthropic
+        from app.agent import TriathlonWorkoutAgent
+        return TriathlonWorkoutAgent()
+
+agent = get_agent()
 
 
 # API Endpoints

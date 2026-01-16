@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class Sport(str, Enum):
@@ -38,6 +38,17 @@ class Workout(BaseModel):
     main_set: List[WorkoutInterval]
     cooldown: str
     notes: Optional[str] = None
+    
+    @field_validator('sport', mode='before')
+    @classmethod
+    def lowercase_sport(cls, v):
+        if isinstance(v, str):
+            v = v.lower()
+            # Map 'brick' to 'bike' (brick workouts are bike-to-run transitions)
+            if v == 'brick':
+                return 'bike'
+            return v
+        return v
 
 
 class WeekPlan(BaseModel):
@@ -54,6 +65,13 @@ class TrainingProgram(BaseModel):
     duration_weeks: int
     weeks: List[WeekPlan]
     notes: str
+    
+    @field_validator('goal', 'fitness_level', mode='before')
+    @classmethod
+    def lowercase_enums(cls, v):
+        if isinstance(v, str):
+            return v.lower()
+        return v
 
 
 class WorkoutRequest(BaseModel):
